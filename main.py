@@ -61,7 +61,7 @@ def formatMoney(val) :
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
 
-    await callDataSeting(update.message.chat.title)
+    # await callDataSeting(update.message.chat.title)
 
     await update.message.reply_text(f"Hello {user.first_name}! I'm your bot. How can I help you?")
 
@@ -75,7 +75,7 @@ async def sendMessageMB(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await updateTypeMessage(update.message.chat.title,'TYPE_MESSAGE', "MB")
     await updateTypeMessage(update.message.chat.title,'COUNT_MESSAGE', "0")
 
-    await callDataSeting(update.message.chat.title)
+    # await callDataSeting(update.message.chat.title)
 
     await context.bot.send_message(chat_id=update.message.chat_id, text=message_text, parse_mode=ParseMode.HTML)
 
@@ -89,7 +89,7 @@ async def sendMessageMN(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await updateTypeMessage(update.message.chat.title,'TYPE_MESSAGE', "MN")
     await updateTypeMessage(update.message.chat.title,'COUNT_MESSAGE', "0")
 
-    await callDataSeting(update.message.chat.title)
+    # await callDataSeting(update.message.chat.title)
 
     await context.bot.send_message(chat_id=update.message.chat_id, text=message_text, parse_mode=ParseMode.HTML)
 
@@ -103,7 +103,7 @@ async def sendMessageMT(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await updateTypeMessage(update.message.chat.title,'TYPE_MESSAGE', "MT")
     await updateTypeMessage(update.message.chat.title,'COUNT_MESSAGE', "0")
 
-    await callDataSeting(update.message.chat.title)
+    # await callDataSeting(update.message.chat.title)
 
     await context.bot.send_message(chat_id=update.message.chat_id, text=message_text, parse_mode=ParseMode.HTML)
 
@@ -345,7 +345,11 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
     #replace message 
     message_text = update.message.text
     message_text = await chuanhoa(message_text)
-    
+
+
+    user = update.message.chat.title
+
+    user = user.replace(" ","_")
 
     if message_text:
 
@@ -353,10 +357,10 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             data = {
                 'thoi_gian_danh': ''+day+'',
-                'tai_khoan_danh': f'{update.message.chat.title}',
+                'tai_khoan_danh': f'{user}',
                 'noi_dung': ''+str(message_text)+'',
                 'action': 'luu',
-                'account_create': ''+str(update.message.chat.title)+'',
+                'account_create': ''+str(user)+'',
                 'vung_mien':'mb'
             }
             
@@ -430,6 +434,10 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     
     message_text = await chuanhoa(message_text)
+
+    user = update.message.chat.title
+
+    user = user.replace(" ","_")
     
     if message_text:
 
@@ -437,10 +445,10 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             data = {
                 'thoi_gian_danh': ''+day+'',
-                'tai_khoan_danh': f'{update.message.chat.title}',
+                'tai_khoan_danh': f'{user}',
                 'noi_dung': ''+message_text+'',
                 'action': 'luu',
-                'account_create': ''+str(update.message.chat.title)+'',
+                'account_create': ''+str(user)+'',
                 'vung_mien':'mn'
             }
             
@@ -512,6 +520,10 @@ async def create_number_mt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
     message_text = await chuanhoa(message_text)
 
+    user = update.message.chat.title
+
+    user = user.replace(" ","_")
+
 
     if message_text:
 
@@ -519,10 +531,10 @@ async def create_number_mt(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             data = {
                 'thoi_gian_danh': ''+day+'',
-                'tai_khoan_danh': f'{update.message.chat.title}',
+                'tai_khoan_danh': f'{user}',
                 'noi_dung': ''+message_text+'',
                 'action': 'luu',
-                'account_create': ''+str(update.message.chat.title)+'',
+                'account_create': ''+str(user)+'',
                 'vung_mien':'mt'
             }
             
@@ -593,11 +605,16 @@ async def fetchReport(update: Update, context: ContextTypes.DEFAULT_TYPE, date_r
 
     specific_date = datetime.strptime(date_report, "%d-%m-%Y").date()
 
+
+    user = update.callback_query.message.chat.title
+
+    user = user.replace(" ","_")
+
     try:
 
         data = {
             'ngay': ''+date_report+'',
-            'ten_tai_khoan': f'{update.callback_query.message.chat.title}',
+            'ten_tai_khoan': f'{user}',
             # 'ten_tai_khoan': f'Group_ChatBot',
             'loai_tai_khoan':'admin',
             'action': 'doc',
@@ -851,9 +868,13 @@ async def fetch_config_price(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     await context.bot.send_message(chat_id=update.callback_query.message.chat_id, text="Cài đặt giá", parse_mode=ParseMode.HTML)
 
+    user = update.callback_query.message.chat.title
+
+    user = user.replace(" ","_")
+
     data = {
 
-            'ten_tai_khoan': f'{update.callback_query.message.chat.title}',
+            'ten_tai_khoan': f'{user}',
             'loai_tai_khoan':'admin',
             'action': 'doc',
     }
@@ -932,10 +953,14 @@ async def update_config_price(update: Update, context: ContextTypes.DEFAULT_TYPE
     if len(config_price) > 0:
 
         await context.bot.send_message(chat_id=update.message.chat_id, text="Đang lưu cài đặt", parse_mode=ParseMode.HTML)
+        
+        user = update.message.chat.title
+
+        user = user.replace(" ","_")
 
         data = {
 
-                'ten_tai_khoan': f'{update.message.chat.title}',
+                'ten_tai_khoan': f'{user}',
                 'action': 'cap_nhat_chi_tiet',
                 'config_price': f'{config_price}'
         }
@@ -1030,9 +1055,13 @@ async def handleLimitStationNumber(update: Update, context: ContextTypes.DEFAULT
 
         if len(list_of_dicts) > 0:
 
+            user = update.message.chat.title
+
+            user = user.replace(" ","_")
+
             data = {
 
-                'ten_tai_khoan': f'{update.message.chat.title}',
+                'ten_tai_khoan': f'{user}',
                 'action': 'chan_so_theo_mien',
                 'so_chan': f'{list_of_dicts}'
             }
@@ -1077,9 +1106,14 @@ async def handleLimitStation(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
         message_text = message_text.split("-")
 
+        user = update.callback_query.message.chat.title
+
+        user = user.replace(" ","_")
+
+
         data = {
 
-                'ten_tai_khoan': f'{update.callback_query.message.chat.title}',
+                'ten_tai_khoan': f'{user}',
                 'action': 'chan_dai',
                 'dai_chan': f'{message_text[0].lower()}',
                 'vung_mien': f'{message_text[1].lower()}'
@@ -1189,14 +1223,18 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
 
+    user = update.callback_query.message.chat.title
+
+    user = user.replace(" ","_")
+
     if query.data == "LIMIT_NUMBER":
 
         await config_limit_number(update, context)
-        await updateTypeMessage(query.message.chat.title,'TYPE_MESSAGE', "LIMIT_NUMBER")
+        await updateTypeMessage(user,'TYPE_MESSAGE', "LIMIT_NUMBER")
 
     elif query.data == "CONFIG_PRICE":
 
-        await updateTypeMessage(query.message.chat.title,'TYPE_MESSAGE', "CONFIG_PRICE")
+        await updateTypeMessage(user,'TYPE_MESSAGE', "CONFIG_PRICE")
 
         await fetch_config_price(update, context)
 
@@ -1247,7 +1285,7 @@ async def handlerListenMessage(update: Update, context: ContextTypes.DEFAULT_TYP
     global setting
     setting = await callDataSeting(update.message.chat.title)
 
-    
+
     if setting['TYPE_MESSAGE'] == 'MB':
        
         await create_number_mb(update, context)

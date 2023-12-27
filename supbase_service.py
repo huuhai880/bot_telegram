@@ -11,8 +11,11 @@ async def callDataSeting(user):
 
     global setting
 
+
+    _user = user.replace(" ","_")
+
     # lấy thông tin cài đặt
-    reslut_setting = supabase.table('setting').select('key_setting,value').eq('account', user).execute()
+    reslut_setting = supabase.table('setting').select('key_setting,value').eq('account', _user).execute()
 
     setting = reslut_setting.data
 
@@ -32,5 +35,7 @@ async def callDataSeting(user):
 
 async def updateTypeMessage(user,key_setting, value):
 
-    supabase.table('setting').update({"value": value}).eq('account', user).eq('key_setting', key_setting).execute()
+    _user = user.replace(" ","_")
+
+    supabase.table('setting').update({"value": value}).eq('account', _user).eq('key_setting', key_setting).execute()
     
