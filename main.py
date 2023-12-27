@@ -404,7 +404,8 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     with open(file_path, 'rb') as file:
                         count +=1
                         await update.message.reply_document(document=InputFile(file), caption=result_string,parse_mode =ParseMode.HTML)
-                        supabase.table('setting').update({"value": int(setting['COUNT_MESSAGE']) + 1}).eq('account', update.message.chat.title).eq('key_setting', 'COUNT_MESSAGE').execute()
+                        # supabase.table('setting').update({"value": int(setting['COUNT_MESSAGE']) + 1}).eq('account', update.message.chat.title).eq('key_setting', 'COUNT_MESSAGE').execute()
+                        await updateTypeMessage(update.message.chat.title,'COUNT_MESSAGE', int(setting['COUNT_MESSAGE']) + 1)
                          
             else:
 
@@ -1036,11 +1037,7 @@ async def handleLimitStationNumber(update: Update, context: ContextTypes.DEFAULT
                 'so_chan': f'{list_of_dicts}'
             }
 
-            
-
             result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data = data)
-
-            print(result_limit.text)
 
             try:
 
@@ -1117,7 +1114,8 @@ async def config_limit_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     query.answer()
 
     keyboard = [
-        [InlineKeyboardButton(f"Chặn đài", callback_data="LIMIT_NUMBER_STATION"), InlineKeyboardButton(f"Huỷ chặn đài", callback_data="CANCEL_LIMIT_STATION")],
+        # [InlineKeyboardButton(f"Chặn đài", callback_data="LIMIT_NUMBER_STATION"), InlineKeyboardButton(f"Huỷ chặn đài", callback_data="CANCEL_LIMIT_STATION")],
+        [InlineKeyboardButton(f"Chặn đài", callback_data="LIMIT_NUMBER_STATION")],
         [InlineKeyboardButton(f"Chặn số theo miền", callback_data="LIMIT_NUMBER_AREA")],
         # [InlineKeyboardButton(f"Chặn theo đài và loại", callback_data="LIMIT_NUMBER_WITH_STATION_AND_TYPE")],
         [InlineKeyboardButton(f"<<< Quay lại", callback_data="BACK_STEP")],
@@ -1225,7 +1223,18 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("vo day")
 
         await handleLimitStation(update, context)
-    
+
+    elif query.data == 'BACK_STEP': 
+
+        keyboard = [
+        [InlineKeyboardButton(f"Chặn", callback_data="LIMIT_NUMBER"), InlineKeyboardButton(f"Giá", callback_data="CONFIG_PRICE")],
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+
+        await query.edit_message_text(text='Chọn loại cài đặt', reply_markup=reply_markup)
+        
+
     else:
 
         await query.edit_message_text(text=f"Đang tổng hợp báo cáo chờ giây lát ....",parse_mode=ParseMode.HTML)
@@ -1235,10 +1244,10 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handlerListenMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    await callDataSeting(update.message.chat.title)
+    global setting
+    setting = await callDataSeting(update.message.chat.title)
 
-    print(setting)
-
+    
     if setting['TYPE_MESSAGE'] == 'MB':
        
         await create_number_mb(update, context)

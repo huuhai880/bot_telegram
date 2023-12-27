@@ -27,6 +27,8 @@ async def callDataSeting(user):
  
         setting = my_dict
     
+    return my_dict
+    
 
 async def updateTypeMessage(user,key_setting, value):
 
