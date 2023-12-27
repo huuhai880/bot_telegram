@@ -11,7 +11,7 @@ import re
 
 # Replace 'YOUR_BOT_TOKEN' with the token you obtained from the BotFather
 TOKEN = '6971027835:AAEM-raPv8-lStXEJpUe9TrIJu6apjUZp3M'
-API_URL = 'http://localhost:9000'
+API_URL = 'http://159.65.129.60:9000'
 
 today = date.today()
 
