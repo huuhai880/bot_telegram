@@ -11,7 +11,8 @@ import re
 
 # Replace 'YOUR_BOT_TOKEN' with the token you obtained from the BotFather
 TOKEN = '6971027835:AAEM-raPv8-lStXEJpUe9TrIJu6apjUZp3M'
-API_URL = 'http://159.65.129.60:9000'
+# API_URL = 'http://159.65.129.60:9000'
+API_URL = 'http://localhost:9000'
 
 today = date.today()
 
@@ -836,32 +837,13 @@ async def select_setting(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     print("chọn cài đặt")
 
-    
-
     keyboard = [
-        [InlineKeyboardButton(f"Chặn", callback_data="LIMIT_NUMBER"), InlineKeyboardButton(f"Giá", callback_data="CONFIG_PRICE")],
+        [InlineKeyboardButton(f"Chặn", callback_data="LIMIT_NUMBER"), InlineKeyboardButton(f"Giá", callback_data="CONFIG_PRICE"), InlineKeyboardButton(f"Hạn mức", callback_data="MAX_PRICE")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
 
     await update.message.reply_text(text='Chọn loại cài đặt', reply_markup=reply_markup)
-
-
-async def select_setting_step1(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    print("chọn cài đặt")
-    query = update.callback_query
-    query.answer()
-
-    keyboard = [
-        [InlineKeyboardButton(f"Chặn", callback_data="LIMIT_NUMBER"), InlineKeyboardButton(f"Giá", callback_data="CONFIG_PRICE")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    
-
-    await context.bot.send_message(text='Chọn loại cài đặt', reply_markup=reply_markup)
-
-    
 
 
 async def fetch_config_price(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1087,6 +1069,110 @@ async def handleLimitStationNumber(update: Update, context: ContextTypes.DEFAULT
 
         await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
 
+async def handleLimitMaxPrice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    message_text = update.message.text
+
+    #Loại bỏ kí tự chặn số
+
+    message_text = message_text.replace("/hanmuc",'')
+
+    message_text = message_text.strip()
+
+    # kiểm tra xem tin có bắt đầu bằng tên đài hay không
+
+    if message_text.startswith(("mb","mn","mt")) and not message_text.endswith(("mb","mn","mt")) :
+
+        i = 0
+        
+        message_text_format = ""
+
+        while i < len(message_text):
+
+            if i + 2 < len(message_text) and message_text[i:i+2] in ["mb", "mt", "mn"]:
+                message_text_format += message_text[i:i+2]+" "
+                i += 2
+            else:
+                message_text_format += message_text[i]
+                i += 1
+
+        # Chuyển chuỗi thành mảng
+        message_text_format = message_text_format.split(" ")
+
+        message_text_format = list(filter(lambda x: x != "", message_text_format))
+
+        current_item = {}
+
+
+        for i in range(0,len(message_text_format)):
+            
+            # kiểm tra nếu là đài thì tạo 1 mảng
+            if message_text_format[i] in ["mb", "mt", "mn"]:
+
+                _number = []
+
+                if len(current_item) > 0 and message_text_format[i] in current_item:
+                    _number = current_item[message_text_format[i]]["so"]
+
+                isNumber = False
+                # chạy từ vị trí hiện tại đến hết lấy những kí tự là số
+                for key in range(i,len(message_text_format)):
+
+                    if message_text_format[key].isdigit() and isNumber == True:
+
+                        _number.append(message_text_format[key])
+
+                        if (key+1) < len(message_text_format) and message_text_format[key+1].isalpha() and isNumber == True:
+                            isNumber = False
+                            break
+
+                    #kiểm tra xem kí tự hiện tại nếu là chữ mà kí tự sau là số thì chuyển trạng thái về True
+                    if message_text_format[key].isalpha() and (key+1) < len(message_text_format) and message_text_format[key+1].isdigit():
+                        isNumber = True
+
+
+                _lst_number = {"dai": message_text_format[i], "so": _number}
+
+                current_item[message_text_format[i]] = _lst_number
+
+
+        list_of_dicts = list(current_item.values())
+
+        if len(list_of_dicts) > 0:
+
+            user = update.message.chat.title
+
+            user = user.replace(" ","_")
+
+            data = {
+
+                'ten_tai_khoan': f'{user}',
+                'action': 'cai_dat_han_muc',
+                'so_chan': f'{list_of_dicts}'
+            }
+
+            print(list_of_dicts)
+
+            result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data = data)
+
+            try:
+
+                result_limit = f"{result_limit.text}"
+
+                if result_limit:
+
+                    result_limit = json.loads(result_limit)
+
+                    if result_limit['success'] == 1:
+                        await context.bot.send_message(chat_id=update.message.chat_id, text="Lưu hạn mức thành công", parse_mode=ParseMode.HTML)
+
+
+            except json.decoder.JSONDecodeError as e:
+                print(f"JSONDecodeError: {e}")
+    
+    else:
+
+        await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
 
 
 async def handleLimitStation(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1157,7 +1243,7 @@ async def config_limit_number(update: Update, context: ContextTypes.DEFAULT_TYPE
     reply_markup = InlineKeyboardMarkup(keyboard)
     
 
-    await context.bot.send_message(chat_id=update.callback_query.message.chat_id, text='Chọn loại cài đặt', reply_markup=reply_markup)
+    await query.edit_message_text(text='Chọn loại cài đặt', reply_markup=reply_markup)
 
 
 async def pick_limit_station(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1216,7 +1302,7 @@ async def pick_limit_station(update: Update, context: ContextTypes.DEFAULT_TYPE)
     ]
     reply_markup = InlineKeyboardMarkup(keyboard_mn)
     
-    await context.bot.send_message(chat_id=update.callback_query.message.chat_id, text='Chọn đài', reply_markup=reply_markup)
+    await query.edit_message_text( text='Chọn đài', reply_markup=reply_markup)
 
     
 async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -1244,14 +1330,14 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == 'LIMIT_NUMBER_AREA':
 
-        await context.bot.send_message(chat_id=update.callback_query.message.chat_id, text="- Cách thêm: /chanso [miền] [số]\n"+
+        await query.edit_message_text(text="- Cách thêm: /chanso [miền] [số]\n"+
         "- Cách hủy: gởi một lệnh trống để hủy chặn (/chanso)\n"+
         "- Tin VD:\n"+
         "/chanso mn mt 39 79 938 mb 68 86")
 
     elif query.data == 'LIMIT_NUMBER_WITH_STATION_AND_TYPE':
 
-        await context.bot.send_message(chat_id=update.callback_query.message.chat_id, text="/chanloai\n"+
+        await query.edit_message_text( text="/chanloai\n"+
         "mb: 00 11 22 33 44 55 66 77 88 99 da0n .\n"+
         "ag bt tp: 39 79 dd500n lo100n 739 938 xc20n .\n"+
         "cm ct: 7777 lo0n .")
@@ -1265,13 +1351,18 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'BACK_STEP': 
 
         keyboard = [
-        [InlineKeyboardButton(f"Chặn", callback_data="LIMIT_NUMBER"), InlineKeyboardButton(f"Giá", callback_data="CONFIG_PRICE")],
+        [InlineKeyboardButton(f"Chặn", callback_data="LIMIT_NUMBER"), InlineKeyboardButton(f"Giá", callback_data="CONFIG_PRICE"), InlineKeyboardButton(f"Hạn mức", callback_data="MAX_PRICE")],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
 
         await query.edit_message_text(text='Chọn loại cài đặt', reply_markup=reply_markup)
+
+    elif query.data == 'MAX_PRICE':
         
+        await query.edit_message_text( text="/hanmuc [miền] [số]\n"+
+        "mb: 100.\n"+
+        "mt mn: 100.\n")
 
     else:
 
@@ -1327,6 +1418,8 @@ def main():
     app.add_handler(CommandHandler('caidat', select_setting))
 
     app.add_handler(CommandHandler('chanso', handleLimitStationNumber))
+
+    app.add_handler(CommandHandler('hanmuc', handleLimitMaxPrice))
 
     # app.add_handler(
     #     ConversationHandler(
