@@ -362,13 +362,18 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'noi_dung': ''+str(message_text)+'',
                 'action': 'luu',
                 'account_create': ''+str(user)+'',
-                'vung_mien':'mb'
+                'vung_mien':'mb',
+                'message_id':f'{update.message.message_id}',
             }
+
+           
             
             respone = requests.post(API_URL+"/mb/tin/api_tao_tin.php", data = data)
 
             
             result_tin = respone.text
+
+            print(result_tin)
 
             data_list = json.loads(result_tin)
 
@@ -377,10 +382,6 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ds_chi_tiet = data_list['ds_chi_tiet']
 
                 data_list = list(data_list['data'].values())
-
-
-                print(ds_chi_tiet)
-
 
                 if len(ds_chi_tiet) >0:
 
@@ -450,7 +451,8 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'noi_dung': ''+message_text+'',
                 'action': 'luu',
                 'account_create': ''+str(user)+'',
-                'vung_mien':'mn'
+                'vung_mien':'mn',
+                'message_id':f'{update.message.message_id}',
             }
             
             respone = requests.post(API_URL+"/mn/tin/api_tao_tin.php", data = data)
@@ -536,15 +538,18 @@ async def create_number_mt(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'noi_dung': ''+message_text+'',
                 'action': 'luu',
                 'account_create': ''+str(user)+'',
-                'vung_mien':'mt'
+                'vung_mien':'mt',
+                'message_id':f'{update.message.message_id}',
             }
-            
+
+            print(data)
+
             respone = requests.post(API_URL+"/mt/tin/api_tao_tin.php", data = data)
 
             
             result_tin = respone.text
 
-
+            print(result_tin)
 
             data_list = json.loads(result_tin)
 
@@ -1371,31 +1376,71 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await fetchReport(update, context, query.data)
 
 
+
+async def funcHandleDeleteTin(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user = update.message.chat.title
+
+    user = user.replace(" ","_")
+
+    data = {
+
+        'ten_tai_khoan': f'{user}',
+        'action': 'xoa_tin',
+        'message_id': f'{update.message.reply_to_message.message_id}'
+    }
+
+    result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data = data)
+
+    try:
+
+        result_limit = f"{result_limit.text}"
+
+        print(result_limit)
+
+        if result_limit:
+
+            result_limit = json.loads(result_limit)
+
+            if result_limit['success'] == 1:
+                await context.bot.send_message(chat_id=update.message.chat_id, text="Xoá tin thành công", parse_mode=ParseMode.HTML)
+            else:
+                await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi. Xoá tin", parse_mode=ParseMode.HTML)
+
+    except json.decoder.JSONDecodeError as e:
+        print(f"JSONDecodeError: {e}")
+
+
 async def handlerListenMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     global setting
     setting = await callDataSeting(update.message.chat.title)
 
+    if update.message.reply_to_message and update.message.text == 'huy':
+        print("huy")
+        await funcHandleDeleteTin(update, context)
 
-    if setting['TYPE_MESSAGE'] == 'MB':
-       
-        await create_number_mb(update, context)
+    else:
 
-    if setting['TYPE_MESSAGE'] == 'MN':
-       
-        await create_number_mn(update, context)
+        if setting['TYPE_MESSAGE'] == 'MB':
+            
+            await create_number_mb(update, context)
 
-    if setting['TYPE_MESSAGE'] == 'MT':
-       
-        await create_number_mt(update, context)
+        if setting['TYPE_MESSAGE'] == 'MN':
+        
+            await create_number_mn(update, context)
 
-    if setting['TYPE_MESSAGE'] == "CONFIG_PRICE":
+        if setting['TYPE_MESSAGE'] == 'MT':
+        
+            await create_number_mt(update, context)
 
-        await update_config_price(update, context)
+        if setting['TYPE_MESSAGE'] == "CONFIG_PRICE":
 
-    if setting['TYPE_MESSAGE'] == "LIMIT_NUMBER":
+            await update_config_price(update, context)
 
-        await config_limit_number(update, context)
+        if setting['TYPE_MESSAGE'] == "LIMIT_NUMBER":
+
+            await config_limit_number(update, context)
 
 
 def main():
