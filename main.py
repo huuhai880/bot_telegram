@@ -7,6 +7,7 @@ from telegram.constants import ParseMode
 from chuan_hoa_tin import chuanhoa
 from supbase_service import callDataSeting, updateTypeMessage, setting
 import re
+from helper import is_number
 
 
 # Replace 'YOUR_BOT_TOKEN' with the token you obtained from the BotFather
@@ -743,7 +744,7 @@ async def fetchReport(update: Update, context: ContextTypes.DEFAULT_TYPE, date_r
 
         #mt
                 
-        # if datetime.strptime(setting["TIME_REPORT_MT"], "%H:%M:%S").time() <= current_time and specific_date <= current_date:
+       
 
         respone_mt = requests.post(API_URL+"/mt/thong_ke/api_thong_ke.php", data = data)
 
@@ -1074,108 +1075,169 @@ async def handleLimitStationNumber(update: Update, context: ContextTypes.DEFAULT
 
         await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
 
-async def handleLimitMaxPrice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handleLimitMaxPriceMB(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message_text = update.message.text
 
     #Loại bỏ kí tự chặn số
 
-    message_text = message_text.replace("/hanmuc",'')
+    message_text = message_text.replace("/hmmb",'')
 
     message_text = message_text.strip()
 
-    # kiểm tra xem tin có bắt đầu bằng tên đài hay không
 
-    if message_text.startswith(("mb","mn","mt")) and not message_text.endswith(("mb","mn","mt")) :
+    message_text = await chuanhoa(message_text)
 
-        i = 0
-        
-        message_text_format = ""
+    message_text = re.sub(r'(da|b|x|dx|dd|lo+)(da|b|x|dx|dd|lo+)',r'\1 \2', message_text)
 
-        while i < len(message_text):
+    message_text = re.sub(r'(\d+)([a-zA-z]+)',r'\1 \2', message_text)
 
-            if i + 2 < len(message_text) and message_text[i:i+2] in ["mb", "mt", "mn"]:
-                message_text_format += message_text[i:i+2]+" "
-                i += 2
-            else:
-                message_text_format += message_text[i]
-                i += 1
+    message_text = re.sub(r'([a-zA-z]+)(\d+)',r'\1 \2', message_text)
 
-        # Chuyển chuỗi thành mảng
-        message_text_format = message_text_format.split(" ")
+    user = update.message.chat.title
 
-        message_text_format = list(filter(lambda x: x != "", message_text_format))
+    user = user.replace(" ","_")
 
-        current_item = {}
+    data = {
 
+        'ten_tai_khoan': f'{user}',
+        'action': 'cai_dat_han_muc',
+        'so_chan': f'{message_text}',
+        'vung_mien': 'mb'
+    }
 
-        for i in range(0,len(message_text_format)):
-            
-            # kiểm tra nếu là đài thì tạo 1 mảng
-            if message_text_format[i] in ["mb", "mt", "mn"]:
+    result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data = data)
 
-                _number = []
+    try:
 
-                if len(current_item) > 0 and message_text_format[i] in current_item:
-                    _number = current_item[message_text_format[i]]["so"]
+        result_limit = f"{result_limit.text}"
 
-                isNumber = False
-                # chạy từ vị trí hiện tại đến hết lấy những kí tự là số
-                for key in range(i,len(message_text_format)):
+        if result_limit:
 
-                    if message_text_format[key].isdigit() and isNumber == True:
+            result_limit = json.loads(result_limit)
 
-                        _number.append(message_text_format[key])
-
-                        if (key+1) < len(message_text_format) and message_text_format[key+1].isalpha() and isNumber == True:
-                            isNumber = False
-                            break
-
-                    #kiểm tra xem kí tự hiện tại nếu là chữ mà kí tự sau là số thì chuyển trạng thái về True
-                    if message_text_format[key].isalpha() and (key+1) < len(message_text_format) and message_text_format[key+1].isdigit():
-                        isNumber = True
+            if result_limit['success'] == 1:
+                await context.bot.send_message(chat_id=update.message.chat_id, text="Lưu hạn mức thành công", parse_mode=ParseMode.HTML)
 
 
-                _lst_number = {"dai": message_text_format[i], "so": _number}
-
-                current_item[message_text_format[i]] = _lst_number
-
-
-        list_of_dicts = list(current_item.values())
-
-        if len(list_of_dicts) > 0:
-
-            user = update.message.chat.title
-
-            user = user.replace(" ","_")
-
-            data = {
-
-                'ten_tai_khoan': f'{user}',
-                'action': 'cai_dat_han_muc',
-                'so_chan': f'{list_of_dicts}'
-            }
-
-            print(list_of_dicts)
-
-            result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data = data)
-
-            try:
-
-                result_limit = f"{result_limit.text}"
-
-                if result_limit:
-
-                    result_limit = json.loads(result_limit)
-
-                    if result_limit['success'] == 1:
-                        await context.bot.send_message(chat_id=update.message.chat_id, text="Lưu hạn mức thành công", parse_mode=ParseMode.HTML)
+    except json.decoder.JSONDecodeError as e:
+        print(f"JSONDecodeError: {e}")
+        await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
 
 
-            except json.decoder.JSONDecodeError as e:
-                print(f"JSONDecodeError: {e}")
-    
-    else:
+async def handleLimitMaxPriceMN(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    message_text = update.message.text
+
+    #Loại bỏ kí tự chặn số
+
+    message_text = message_text.replace("/hmmn",'')
+
+    message_text = message_text.strip()
+
+    message_text = await chuanhoa(message_text)
+
+    message_text = re.sub(r'(da|b|x|dx|dd|lo+)(da|b|x|dx|dd|lo+)',r'\1 \2', message_text)
+
+    message_text = re.sub(r'(\d+)([a-zA-z]+)',r'\1 \2', message_text)
+
+    message_text = re.sub(r'([a-zA-z]+)(\d+)',r'\1 \2', message_text)
+
+    user = update.message.chat.title
+
+    user = user.replace(" ","_")
+
+
+
+    type_tin = 'current'
+
+    # kiểm tra message nếu chỉ có đài và điểm hoặc chỉ có điểm ==> lưu lại theo cách tính khác
+    temp_message_text = message_text.split(" ")
+
+    temp_message_text = list(filter(lambda x: x != "", temp_message_text))
+
+    if len(temp_message_text) <=2 and len(temp_message_text) >0:
+        print("tin chỉ có đài và điểm hoặc chỉ có điểm")
+        #kiểm tra vị trí thứ nhất nếu là số thì đó là điểm chặn
+        if is_number(temp_message_text[0]):
+            type_tin ='only_diem'
+        else:
+            type_tin ='dai_and_diem'
+
+    data = {
+
+        'ten_tai_khoan': f'{user}',
+        'action': 'cai_dat_han_muc',
+        'so_chan': f'{message_text}',
+        'vung_mien': 'mn',
+        'type_tin': f'{type_tin}'
+    }
+
+    result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data = data)
+
+    try:
+
+        result_limit = f"{result_limit.text}"
+
+        if result_limit:
+
+            result_limit = json.loads(result_limit)
+
+            if result_limit['success'] == 1:
+                await context.bot.send_message(chat_id=update.message.chat_id, text="Lưu hạn mức thành công", parse_mode=ParseMode.HTML)
+
+
+    except json.decoder.JSONDecodeError as e:
+        print(f"JSONDecodeError: {e}")
+        await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
+
+
+async def handleLimitMaxPriceMT(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    message_text = update.message.text
+
+    #Loại bỏ kí tự chặn số
+
+    message_text = message_text.replace("/hmmt",'')
+
+    message_text = message_text.strip()
+
+    message_text = await chuanhoa(message_text)
+
+    message_text = re.sub(r'(da|b|x|dx|dd|lo+)(da|b|x|dx|dd|lo+)',r'\1 \2', message_text)
+
+    message_text = re.sub(r'(\d+)([a-zA-z]+)',r'\1 \2', message_text)
+
+    message_text = re.sub(r'([a-zA-z]+)(\d+)',r'\1 \2', message_text)
+
+    user = update.message.chat.title
+
+    user = user.replace(" ","_")
+
+    data = {
+
+        'ten_tai_khoan': f'{user}',
+        'action': 'cai_dat_han_muc',
+        'so_chan': f'{message_text}',
+        'vung_mien': 'mt'
+    }
+
+    result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data = data)
+
+    try:
+
+        result_limit = f"{result_limit.text}"
+
+        if result_limit:
+
+            result_limit = json.loads(result_limit)
+
+            if result_limit['success'] == 1:
+                await context.bot.send_message(chat_id=update.message.chat_id, text="Lưu hạn mức thành công", parse_mode=ParseMode.HTML)
+
+
+    except json.decoder.JSONDecodeError as e:
+        print(f"JSONDecodeError: {e}")
 
         await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
 
@@ -1365,9 +1427,10 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == 'MAX_PRICE':
         
-        await query.edit_message_text( text="/hanmuc [miền] [số]\n"+
-        "mb: 100.\n"+
-        "mt mn: 100.\n")
+        await query.edit_message_text( text="/hm[miền] [đài] [điểm] [kiểu]\n"+
+        "/hmmb\n"+
+        "/hmmt\n"+
+        "/hmmn\n")
 
     else:
 
@@ -1416,6 +1479,9 @@ async def handlerListenMessage(update: Update, context: ContextTypes.DEFAULT_TYP
     global setting
     setting = await callDataSeting(update.message.chat.title)
 
+    current_time = datetime.now().time()
+
+
     if update.message.reply_to_message and update.message.text == 'huy':
         print("huy")
         await funcHandleDeleteTin(update, context)
@@ -1424,15 +1490,25 @@ async def handlerListenMessage(update: Update, context: ContextTypes.DEFAULT_TYP
 
         if setting['TYPE_MESSAGE'] == 'MB':
             
-            await create_number_mb(update, context)
+            if datetime.strptime(setting["TIME_REPORT_MB"], "%H:%M:%S").time() >= current_time:
+                await create_number_mb(update, context)
+            else:
+                await update.message.reply_text(text="Lỗi. Không trong thời gian nhận tin",parse_mode =ParseMode.HTML)
+
 
         if setting['TYPE_MESSAGE'] == 'MN':
-        
-            await create_number_mn(update, context)
+
+            if datetime.strptime(setting["TIME_REPORT_MN"], "%H:%M:%S").time() >= current_time:
+                await create_number_mn(update, context)
+            else:
+                await update.message.reply_text(text="Lỗi. Không trong thời gian nhận tin",parse_mode =ParseMode.HTML)
 
         if setting['TYPE_MESSAGE'] == 'MT':
-        
-            await create_number_mt(update, context)
+
+            if datetime.strptime(setting["TIME_REPORT_MT"], "%H:%M:%S").time() >= current_time:
+                await create_number_mt(update, context)
+            else:
+                await update.message.reply_text(text="Lỗi. Không trong thời gian nhận tin",parse_mode =ParseMode.HTML)
 
         if setting['TYPE_MESSAGE'] == "CONFIG_PRICE":
 
@@ -1464,17 +1540,11 @@ def main():
 
     app.add_handler(CommandHandler('chanso', handleLimitStationNumber))
 
-    app.add_handler(CommandHandler('hanmuc', handleLimitMaxPrice))
+    app.add_handler(CommandHandler('hmmb', handleLimitMaxPriceMB))
 
-    # app.add_handler(
-    #     ConversationHandler(
-    #     entry_points=[CommandHandler('setting',select_setting_step1)],
-    #     states={
-    #         FIRST: [CallbackQueryHandler(config_limit_number, pattern='LIMIT_NUMBER')],
-    #         SECOND: [CallbackQueryHandler(select_setting_step1, pattern=f'^BACK_STEP$')],
-    #     },
-    #     fallbacks=[CommandHandler('end', select_setting_step1)]
-    # ))
+    app.add_handler(CommandHandler('hmmt', handleLimitMaxPriceMT))
+
+    app.add_handler(CommandHandler('hmmn', handleLimitMaxPriceMN))
 
 
     app.add_handler(MessageHandler(filters.ChatType.GROUP & filters.TEXT, handlerListenMessage))
