@@ -18,6 +18,7 @@ async def funcHandleHuyChan(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
 
     user = update.message.chat.title
+    user = user.replace(" ", "_")
 
     # Loại bỏ kí tự chặn số
 
