@@ -9,6 +9,7 @@ from supbase_service import callDataSeting, updateTypeMessage, setting
 import re
 from helper import is_number
 from funcHandleHuyChan import funcHandleHuyChan
+from handleLimitTypeStationNumber import handleLimitTypeStationNumberMB,handleLimitTypeStationNumberMN, handleLimitTypeStationNumberMT
 
 
 # Replace 'YOUR_BOT_TOKEN' with the token you obtained from the BotFather
@@ -978,8 +979,7 @@ async def handleLimitStationNumber(update: Update, context: ContextTypes.DEFAULT
         # Chuyển chuỗi thành mảng
         message_text_format = message_text_format.split(" ")
 
-        message_text_format = list(
-            filter(lambda x: x != "", message_text_format))
+        message_text_format = list(filter(lambda x: x != "", message_text_format))
 
         current_item = {}
 
@@ -1050,6 +1050,8 @@ async def handleLimitStationNumber(update: Update, context: ContextTypes.DEFAULT
         await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
 
 
+
+
 async def handleLimitMaxPriceMB(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message_text = update.message.text
@@ -1081,9 +1083,11 @@ async def handleLimitMaxPriceMB(update: Update, context: ContextTypes.DEFAULT_TY
         'vung_mien': 'mb'
     }
 
-    result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data=data)
+    
 
     try:
+
+        result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data=data)
 
         result_limit = f"{result_limit.text}"
 
@@ -1378,7 +1382,8 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == 'LIMIT_NUMBER_WITH_STATION_AND_TYPE':
 
-        await query.edit_message_text(text="/chanloai\n" +
+        await query.edit_message_text(text="/chanloai_[mien]\n" +
+                                      "/chanloai_mb\n" +
                                       "mb: 00 11 22 33 44 55 66 77 88 99 da0n .\n" +
                                       "ag bt tp: 39 79 dd500n lo100n 739 938 xc20n .\n" +
                                       "cm ct: 7777 lo0n .")
@@ -1477,8 +1482,6 @@ async def funcHandleDeleteTin(update: Update, context: ContextTypes.DEFAULT_TYPE
     try:
 
         result_limit = f"{result_limit.text}"
-
-        print(result_limit)
 
         if result_limit:
 
@@ -1629,6 +1632,12 @@ def main():
     app.add_handler(CommandHandler('caidat', select_setting))
 
     app.add_handler(CommandHandler('chanso', handleLimitStationNumber))
+
+    app.add_handler(CommandHandler('chanloai_mb', handleLimitTypeStationNumberMB))
+
+    app.add_handler(CommandHandler('chanloai_mn', handleLimitTypeStationNumberMN))
+
+    app.add_handler(CommandHandler('chanloai_mt', handleLimitTypeStationNumberMT))
 
     app.add_handler(CommandHandler('hmmb', handleLimitMaxPriceMB))
 
