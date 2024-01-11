@@ -10,7 +10,7 @@ import re
 from helper import is_number
 
 
-API_URL = 'http://localhost:9000'
+API_URL = 'http://159.65.129.60:9000'
 
 
 async def funcHandleHuyChan(update: Update, context: ContextTypes.DEFAULT_TYPE):
