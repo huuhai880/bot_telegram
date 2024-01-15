@@ -11,7 +11,6 @@ async def callDataSeting(user):
 
     global setting
 
-
     _user = user.replace(" ","_")
 
     # lấy thông tin cài đặt
@@ -19,15 +18,14 @@ async def callDataSeting(user):
 
     setting = reslut_setting.data
 
-    if len(reslut_setting.data) >0:
+    my_dict = {}  # Initialize the dictionary outside the loop
 
-        my_dict = {}
+    if len(reslut_setting.data) > 0:
+
         for index in range(0, len(reslut_setting.data)):
-
             print(reslut_setting.data[index])
-
             my_dict[reslut_setting.data[index]['key_setting']] = reslut_setting.data[index]['value']
- 
+
         setting = my_dict
     
     return setting
