@@ -11,6 +11,8 @@ from helper import is_number
 from funcHandleHuyChan import funcHandleHuyChan
 from handleLimitTypeStationNumber import handleLimitTypeStationNumberMB,handleLimitTypeStationNumberMN, handleLimitTypeStationNumberMT
 
+from handleUpPrice import handleUpPriceMB
+
 
 # Replace 'YOUR_BOT_TOKEN' with the token you obtained from the BotFather
 TOKEN = '6705356232:AAErmh47SQeDeuBsRrSJuMBR6oRdQsqOmQ8'
@@ -369,13 +371,13 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             result_tin = respone.text
 
-            print(result_tin)
-
             data_list = json.loads(result_tin)
 
             if data_list['status'] == 200:
 
                 ds_chi_tiet = data_list['ds_chi_tiet']
+
+                msg_tang_diem = data_list['diem_tang']
 
                 data_list = list(data_list['data'].values())
 
@@ -401,10 +403,14 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
                     result_string += f'TỔNG: {formatMoney(total_xac)}'
 
+                    if msg_tang_diem :
+                        result_string += '\n'+msg_tang_diem
+
+
                     with open(file_path, 'rb') as file:
                         count += 1
                         await update.message.reply_document(document=InputFile(file), caption=result_string, parse_mode=ParseMode.HTML)
-                        # supabase.table('setting').update({"value": int(setting['COUNT_MESSAGE']) + 1}).eq('account', update.message.chat.title).eq('key_setting', 'COUNT_MESSAGE').execute()
+                       
                         await updateTypeMessage(update.message.chat.title, 'COUNT_MESSAGE', int(setting['COUNT_MESSAGE']) + 1)
 
             else:
@@ -454,13 +460,13 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             result_tin = respone.text
 
-            print(result_tin)
-
             data_list = json.loads(result_tin)
 
             if data_list['status'] == 200:
 
                 ds_chi_tiet = data_list['ds_chi_tiet']
+
+                msg_tang_diem = data_list['diem_tang']
 
                 data_list = list(data_list['data'].values())
 
@@ -487,6 +493,9 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
                             total_trung += tin['tien_trung'] or 0
 
                     result_string += f'TỔNG: {formatMoney(total_xac)}'
+
+                    if msg_tang_diem :
+                        result_string += '\n'+msg_tang_diem
 
                     with open(file_path, 'rb') as file:
                         count += 1
@@ -535,21 +544,19 @@ async def create_number_mt(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 'message_id': f'{update.message.message_id}',
             }
 
-            print(data)
-
+          
             respone = requests.post(
                 API_URL+"/mt/tin/api_tao_tin.php", data=data)
 
             result_tin = respone.text
 
-            print(result_tin)
 
             data_list = json.loads(result_tin)
 
             if data_list['status'] == 200:
 
                 ds_chi_tiet = data_list['ds_chi_tiet']
-
+                msg_tang_diem = data_list['diem_tang']
                 data_list = list(data_list['data'].values())
 
                 if len(ds_chi_tiet) > 0:
@@ -573,6 +580,9 @@ async def create_number_mt(update: Update, context: ContextTypes.DEFAULT_TYPE):
                             total_trung += tin['tien_trung'] or 0
 
                     result_string += f'TỔNG: {formatMoney(total_xac)}'
+
+                    if msg_tang_diem :
+                        result_string += '\n'+msg_tang_diem
 
                     with open(file_path, 'rb') as file:
                         count += 1
@@ -1294,6 +1304,10 @@ async def pick_limit_station(update: Update, context: ContextTypes.DEFAULT_TYPE)
     query.answer()
 
     keyboard_mn = [
+        [InlineKeyboardButton(
+            f"==Miền Bắc==", callback_data="LIMIT_NUMBER_STATION")],
+
+        [InlineKeyboardButton(f"MB", callback_data="STATION_MB-MB")],
 
         [InlineKeyboardButton(
             f"==Miền Nam==", callback_data="LIMIT_NUMBER_STATION")],
@@ -1390,8 +1404,6 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data.startswith('STATION_'):
 
-        print("vo day")
-
         await handleLimitStation(update, context)
 
     elif query.data == 'BACK_STEP':
@@ -1413,11 +1425,10 @@ async def button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif query.data == 'UP_PRICE':
 
-        await query.edit_message_text(text="/td[miền] [đài] [kiểu] [Tiền tăng]\n" +
-                                      "/tdmb vl 12 dd dx 100\n" +
-                                      "/tdmn vl dd dx 100\n" +
-                                      "/tdmt dd dx 100\n" +
-                                      "Lệnh phải có đủ kiểu và Tiền tăng")
+        await query.edit_message_text(text="/td[miền]\n"+
+                                      "/tdmb\n" +
+                                      '[đài]: [so] [kieu] [tien]'
+                                      "vl tp ag: dd bl dx 100 - 20/01/2023 .\n")
     
     
     elif query.data == 'CANCEL_LIMIT_STATION':
@@ -1494,73 +1505,6 @@ async def funcHandleDeleteTin(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     except json.decoder.JSONDecodeError as e:
         print(f"JSONDecodeError: {e}")
-
-async def handleUpPriceMB(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    message_text = update.message.text
-
-    # Loại bỏ kí tự chặn số
-
-    message_text = message_text.replace("/tdmb", '')
-
-    message_text = message_text.strip()
-
-    message_text = await chuanhoa(message_text)
-
-    message_text = re.sub(
-        r'(da|b|x|dx|dd|lo+)(da|b|x|dx|dd|lo+)', r'\1 \2', message_text)
-
-    message_text = re.sub(r'(\d+)([a-zA-z]+)', r'\1 \2', message_text)
-
-    message_text = re.sub(r'([a-zA-z]+)(\d+)', r'\1 \2', message_text)
-
-    user = update.message.chat.title
-
-    user = user.replace(" ", "_")
-
-    type_tin = 'current'
-
-    # kiểm tra message nếu chỉ có đài và điểm hoặc chỉ có điểm ==> lưu lại theo cách tính khác
-    temp_message_text = message_text.split(" ")
-
-    temp_message_text = list(filter(lambda x: x != "", temp_message_text))
-
-    if len(temp_message_text) <= 2 and len(temp_message_text) > 0:
-        print("tin chỉ có đài và điểm hoặc chỉ có điểm")
-        # kiểm tra vị trí thứ nhất nếu là số thì đó là điểm chặn
-        if is_number(temp_message_text[0]):
-            type_tin = 'only_diem'
-        else:
-            type_tin = 'dai_and_diem'
-
-    data = {
-
-        'ten_tai_khoan': f'{user}',
-        'action': 'cai_dat_tang_diem',
-        'so_chan': f'{message_text}',
-        'vung_mien': 'mb',
-        'type_tin': f'{type_tin}'
-    }
-
-    print(data)
-
-    # try:
-
-    #     result_limit = requests.post(API_URL+"/chan_so/api_chan_so.php", data=data)
-
-    #     result_limit = f"{result_limit.text}"
-
-    #     if result_limit:
-
-    #         result_limit = json.loads(result_limit)
-
-    #         if result_limit['success'] == 1:
-    #             await context.bot.send_message(chat_id=update.message.chat_id, text="Lưu hạn mức thành công", parse_mode=ParseMode.HTML)
-
-    # except json.decoder.JSONDecodeError as e:
-    #     print(f"JSONDecodeError: {e}")
-    await context.bot.send_message(chat_id=update.message.chat_id, text="Lỗi \n Tin của bạn không đúng định dạng đã có.", parse_mode=ParseMode.HTML)
-
 
 
 async def handlerListenMessage(update: Update, context: ContextTypes.DEFAULT_TYPE):
