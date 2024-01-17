@@ -7,11 +7,32 @@ supabase: Client = create_client(url, key)
 
 setting = {}
 
+
+async def checkExistsAccount(_user):
+    print("Kiểm tra xem có account setting chưa")
+    reslut_setting = supabase.table('setting').select('key_setting,value').eq('account', _user).execute()
+
+    if len(reslut_setting.data) == 0:
+
+        supabase.table('setting')\
+            .insert([
+                {"value": '16:10:00', "account": _user,"key_setting":"TIME_REPORT_MN"},
+                {"value": '18:10:00', "account": _user,"key_setting":"TIME_REPORT_MB"},
+                {"value": '17:10:00', "account": _user,"key_setting":"TIME_REPORT_MT"},
+                {"value": 'MB', "account": _user,"key_setting":"TYPE_MESSAGE"},
+                {"value": '0', "account": _user,"key_setting":"COUNT_MESSAGE"},
+            ])\
+            .execute()
+
+
+
 async def callDataSeting(user):
 
     global setting
 
     _user = user.replace(" ","_")
+
+    await checkExistsAccount(_user)
 
     # lấy thông tin cài đặt
     reslut_setting = supabase.table('setting').select('key_setting,value').eq('account', _user).execute()
@@ -34,6 +55,8 @@ async def callDataSeting(user):
 async def updateTypeMessage(user,key_setting, value):
 
     _user = user.replace(" ","_")
+
+    await checkExistsAccount(_user)
 
     supabase.table('setting').update({"value": value}).eq('account', _user).eq('key_setting', key_setting).execute()
     
