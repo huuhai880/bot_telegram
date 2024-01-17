@@ -441,6 +441,8 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = user.replace(" ", "_")
 
+    print(message_text)
+
     if message_text:
 
         try:
