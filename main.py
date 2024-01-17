@@ -11,7 +11,9 @@ from helper import is_number
 from funcHandleHuyChan import funcHandleHuyChan
 from handleLimitTypeStationNumber import handleLimitTypeStationNumberMB,handleLimitTypeStationNumberMN, handleLimitTypeStationNumberMT
 
-from handleUpPrice import handleUpPriceMB
+from handleUpPrice import handleUpPriceMB, handleUpPriceMT, handleUpPriceMN
+
+from huong_dan import funcHandleHuongDan
 
 
 # Replace 'YOUR_BOT_TOKEN' with the token you obtained from the BotFather
@@ -1552,11 +1554,7 @@ async def handlerListenMessage(update: Update, context: ContextTypes.DEFAULT_TYP
 
             await config_limit_number(update, context)
 
-async def funcHandleHuongDan(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    message = "/caidat - Mở danh mục cài đặt\n"+ "/mb - Ghi số cho miền bắc\n"+"/mn - Ghi số cho miền nam\n"+"/mt - Ghi số cho miền trung\n"+"/baocao - Báo cáo kết quả\n"+"/chanso - Chặn số hoặc điểm\n"
-            
-    await update.message.reply_text(text=message, parse_mode=ParseMode.HTML)
 
 def main():
 
@@ -1592,6 +1590,8 @@ def main():
     app.add_handler(CommandHandler('hmmn', handleLimitMaxPriceMN))
 
     app.add_handler(CommandHandler('tdmb', handleUpPriceMB))
+    app.add_handler(CommandHandler('tdmt', handleUpPriceMT))
+    app.add_handler(CommandHandler('tdmn', handleUpPriceMN))
 
     app.add_handler(CommandHandler('huongdan', funcHandleHuongDan))
 
