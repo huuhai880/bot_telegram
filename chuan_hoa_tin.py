@@ -5,6 +5,7 @@ async def chuanhoa(tin):
     tin = tin.lower()
     
     # Bỏ unicode
+   
     tin = tin.replace('đ', 'd')
     tin = tin.replace(
         'aáàảãạăắằẳẵặâấầẩẫậ',
@@ -27,7 +28,12 @@ async def chuanhoa(tin):
         'da'
     )
 
+    tin = tin.replace('đài', 'dai')
+
+    tin = tin.replace('dài', 'dai')
+
     tin = tin.replace('/',' ')
+    tin = tin.replace('.',' ')
     tin = tin.replace('_',' ')
     tin = tin.replace(' ', "")
     tin = tin.replace(',,', " ")
