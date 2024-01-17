@@ -32,6 +32,8 @@ async def chuanhoa(tin):
 
     tin = tin.replace('dài', 'dai')
 
+    tin = tin.replace(',2d', ' 2d')
+
     tin = tin.replace('/',' ')
     tin = tin.replace('.',' ')
     tin = tin.replace('_',' ')
