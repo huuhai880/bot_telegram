@@ -38,6 +38,7 @@ async def chuanhoa(tin):
     tin = tin.replace('.',' ')
     tin = tin.replace('_',' ')
     tin = tin.replace(' ', "")
+    tin = tin.replace('-', " ")
     tin = tin.replace(',,', " ")
     tin = re.sub(r'\d+\.{3}\d+', lambda match: match.group().replace('...', ' '), tin)
     tin = tin.replace("…", " ")
