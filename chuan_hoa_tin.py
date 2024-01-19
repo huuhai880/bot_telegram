@@ -1,11 +1,16 @@
 import re
 
-async def chuanhoa(tin):
+async def chuanhoa(current_tin):
+
+    tin = current_tin
+
     # Chữ thường
     tin = tin.lower()
     
+    tin = tin.replace('.',' ')
     # Bỏ unicode
    
+
     tin = tin.replace('đ', 'd')
     tin = tin.replace(
         'aáàảãạăắằẳẵặâấầẩẫậ',
@@ -28,14 +33,23 @@ async def chuanhoa(tin):
         'da'
     )
 
+    
     tin = tin.replace('đài', 'dai')
 
     tin = tin.replace('dài', 'dai')
 
-    tin = tin.replace(',2d', ' 2d')
+    tin = tin.replace(',2d', '2d')
+
+    tin = tin.replace('đầu', 'dau')
+
+    tin = tin.replace('dàu', 'dau')
+
+    tin = tin.replace('dầu', 'dau')
+
+    print(tin)
 
     tin = tin.replace('/',' ')
-    tin = tin.replace('.',' ')
+   
     tin = tin.replace('_',' ')
     tin = tin.replace(' ', "")
     tin = tin.replace('-', " ")
@@ -44,7 +58,6 @@ async def chuanhoa(tin):
     tin = tin.replace("…", " ")
     # tin = tin.replace(",", " ")
     # tin = tin.replace(".,", " ")
-
 
     tin = tin.strip()
     

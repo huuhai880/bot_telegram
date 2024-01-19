@@ -17,7 +17,7 @@ from huong_dan import funcHandleHuongDan
 
 
 # Replace 'YOUR_BOT_TOKEN' with the token you obtained from the BotFather
-TOKEN = '6971027835:AAEM-raPv8-lStXEJpUe9TrIJu6apjUZp3M'
+TOKEN = '6401346751:AAEoYQ9fb5HTba4wK8tFCIGvmgR4gHztgu8'
 # API_URL = 'http://159.65.129.60:9000'
 API_URL = 'http://localhost:9000'
 
@@ -443,9 +443,7 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = user.replace(" ", "_")
 
-    print(message_text)
-
-
+   
     if message_text:
 
         try:
