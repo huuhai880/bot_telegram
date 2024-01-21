@@ -7,7 +7,6 @@ async def chuanhoa(current_tin):
     # Chữ thường
     tin = tin.lower()
     
-    tin = tin.replace('.',' ')
     # Bỏ unicode
    
 
@@ -46,13 +45,11 @@ async def chuanhoa(current_tin):
 
     tin = tin.replace('dầu', 'dau')
 
-    print(tin)
+    tin = tin.replace('đâu', 'dau')
 
-    tin = tin.replace('/',' ')
-   
     tin = tin.replace('_',' ')
     tin = tin.replace(' ', "")
-    tin = tin.replace('-', " ")
+    
     tin = tin.replace(',,', " ")
     tin = re.sub(r'\d+\.{3}\d+', lambda match: match.group().replace('...', ' '), tin)
     tin = tin.replace("…", " ")
