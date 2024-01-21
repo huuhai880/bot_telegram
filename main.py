@@ -354,6 +354,8 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = user.replace(" ", "_")
 
+   
+
     if message_text:
 
         try:
@@ -372,6 +374,8 @@ async def create_number_mb(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 API_URL+"/mb/tin/api_tao_tin.php", data=data)
 
             result_tin = respone.text
+
+            print(result_tin)
 
             data_list = json.loads(result_tin)
 
@@ -443,6 +447,8 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = user.replace(" ", "_")
 
+
+
    
     if message_text:
 
@@ -462,6 +468,8 @@ async def create_number_mn(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 API_URL+"/mn/tin/api_tao_tin.php", data=data)
 
             result_tin = respone.text
+
+            print(result_tin)
 
             data_list = json.loads(result_tin)
 
@@ -690,6 +698,8 @@ async def fetchReport(update: Update, context: ContextTypes.DEFAULT_TYPE, date_r
             API_URL+"/mn/thong_ke/api_thong_ke.php", data=data)
 
         result_report_mn = respone_mn.text
+
+        print(result_report_mn)
 
         report_mn_format = json.loads(result_report_mn)
 
